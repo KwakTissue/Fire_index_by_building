@@ -121,10 +121,30 @@
   * Target으로 사용할 FSI의 왜도와 첨도를 확인했을 때 왜도는 1.7로 비대칭적인 분포를 나타내고 첨도는 2.3으로 높게 나타나 log scaling을 진행
 3. 하이퍼파라미터 튜닝
   * XGBoost의 하이퍼파라미터 튜닝을 위해 Sklearn의 GridSearchCV를 통해 튜닝   
-``` param_grid = {‘max_depth’: [2, 3, 4, 5, 6],
-‘n_estimators’: [100, 200, 300, 400, 500, 600, 700],
-‘learning_rate’: [0.1, 0.05, 0.01, 0.015]} ```   
-  * 최종 하이퍼파라미터로는 {'learning_rate': 0.01, 'max_depth': 2, 'n_estimators': 300}이 채택
+```
+param_grid = {‘max_depth’: [2, 3, 4, 5, 6],
+              ‘n_estimators’: [100, 200, 300, 400, 500, 600, 700],
+              ‘learning_rate’: [0.1, 0.05, 0.01, 0.015]}
+```   
+  * 최종 하이퍼파라미터로는 `{'learning_rate': 0.01, 'max_depth': 2, 'n_estimators': 300}`이 채택
+4. Feature Selection
+  * Sklearn의 SelectKBest를 통해 1부터 총 feature 수인 13까지의 k를 사용해 어떤 feature로 구성할지 선택
+  * Training loss와 validation loss를 확인했을 때 k=8일 때 training loss가 가장 작았고, validation loss가 가장 작았던 k=4인 경우보다 R2 값이 더 높아 k=8로 선정
+    * Training & Validation Loss 그래프   
+      <img width="319" alt="image" src="https://github.com/user-attachments/assets/28e38997-2c7d-482f-9ed0-14108e1f414e" />
+  * 상관관계 및 유의확률 분석을 통해 도출한 화재확산속도지수에 대해 유의미한 변수와 Feature Selection에서 선택된 8개의 변수는 동일
+  *  `전기사용량`, `가스사용량`, `화재확산_지붕자재`, `화재확산_건물자재`, `화재확산_건물용도`, `승강기개수`, `총층수`, `노후도` 변수로 모델링을 진행
+5. 모델링 결과
+  * 5-Fold 검증을 통해 학습된 XGBoost모델의 평가지표
+    * `R2` : 0.48967
+    * `MAE`: 1.51675
+  * Feature Importances   
+    <img width="361" alt="image" src="https://github.com/user-attachments/assets/44a1f2cf-852f-4f03-a27c-707d27d460e4" />
+6. 최종 결과
+  * 상관관계 및 유의확률 분석을 통해 도출한 변수 8개와 feature selection을 통해 선택된 변수 8개가 동일
+  * 모델링 결과 `총층수(51.1%)`, `승강기개수(19.9%)`, `화재확산_건물자재(8.6%)`, `화재확산_건물용도(7.2%)`, `전기사용량(4.6%)`, `가스사용량(4.0%)`, `노후도(2.6%)`, `화재확산_지붕자재(1.9%)` 순으로 화재확산속도지수에 높은 비중으로 영향을 미치는 것으로 분석
+
+
 
 
    
