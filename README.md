@@ -63,14 +63,61 @@
       3. 약차단형 : 초기 화재에는 저항하지만, 비교적 빠르게 열에 의해 손상되거나 파괴될 가능성이 있는 자재
 * 화재확산속도지수(FSI) 생성   
   화재확산속도지수는 화재가 얼마나 빠르게 확산되었는지를 추정하는 지수로, 화재피해와 건물의 면적과 화재성장을 전반적으로 반영
-  * 계산식
-  <img width="464" alt="image" src="https://github.com/user-attachments/assets/794e4372-74d0-4995-9443-823654050f99" />
-  * 설명
+  * 계산식   
+    <img width="464" alt="image" src="https://github.com/user-attachments/assets/794e4372-74d0-4995-9443-823654050f99" />   
+  * 설명   
     1. 재산피해금액은 화재피해 규모를 나타내고, 피해가 클수록 화재 확산 속도가 높았을 것으로 추정
     2. 화재성장곡선은 선행연구에서 시간 제곱임을 확인 후, 재산피해금액을 진압소요시간의 제곱으로 나눔
     3. 단위 면적에 대한 지표로 사용하기 위해 연면적으로 나눔
-3. 분석 전 최종데이터셋
+3. 분석 전 최종데이터셋   
    <img width="540" alt="image" src="https://github.com/user-attachments/assets/7a1b8703-248d-4e3e-b734-551c909e565d" />
+### 2) EDA
+1. 화재확산속도지수 기초통계량   
+   <img width="469" alt="image" src="https://github.com/user-attachments/assets/1f88ef4d-f4d4-4f97-97be-b61155c0a3b1" />
+   <img width="485" alt="image" src="https://github.com/user-attachments/assets/e3377a00-e35d-4f5f-aac8-f67741258a4d" />
+   * Boxplot과 FSI의 기초통계량 분석 결과, FSI의 표준편차가 사분위수에 비해 매우 높아 최대 값과 최소값 간의 차이가 크며, 이상치가 다수 존재하는 것을 확인
+   * 분위수를 기준으로 IQR를 계산하여 x < Q1 - 1.5 * IQR, x > Q3 + 1.5 * IQR인 값을 제거하는방식으로 정제
+2. 독립변수 기초통계량확인
+   * 수치형 변수
+     <img width="459" alt="image" src="https://github.com/user-attachments/assets/63f3e61a-af07-4b75-9c2d-f9925d41851f" />
+     <img width="527" alt="image" src="https://github.com/user-attachments/assets/aea80b18-f61d-4288-983c-a7e2d166f33a" />
+     * 대체로 이상치가 많은 것을 보아 모델 적용 전 독립변수를 이상치의 영향을 줄이는 RobustScaling 기법을 활용하여 스케일링이 필요한 것을 판단
+   * 범주형 변수
+     <img width="518" alt="image" src="https://github.com/user-attachments/assets/3db35f7e-269e-4dfc-9ad2-9ea2cacae011" />
+     <img width="543" alt="image" src="https://github.com/user-attachments/assets/9a6c74c8-4596-47c0-b03e-ab7388ab3bc1" />
+     * 건물의 상태를 확인할 수 있는 주요변수인 건물용도, 건물자재, 지붕자재의 기초통계량 확인 결과 건물용도에서는 주거시설과 공공시설이 큰 비중을 차지하며, 건물자재에서는 불연성자재, 지붕자재에서는 차단형자재가 큰 비중을 차지함을 확인
+3. 상관 분석
+   * 상관관계 분석 표   
+     <img width="311" alt="image" src="https://github.com/user-attachments/assets/c094d6d2-7e25-4089-ab84-b20f00f7dfa2" />
+     * 상관분석 결과 FSI에 대한 상관계수가 총층수가 -0.348로 가장 크고 전기사용량 0.247, 승강기개수 -0.181, 노후도 0.155로 FSI에 대해 주요한 변수로 확인
+     * spst의 pearson-r를 활용하여 자세한 상관분석을 진행
+  * spst를 사용한 pearson-r 상관계수   
+    <img width="362" alt="image" src="https://github.com/user-attachments/assets/4a60c61c-8e44-4908-a6c7-e8f80f9de96c" />
+  * 그래프   
+    <img width="537" alt="image" src="https://github.com/user-attachments/assets/d37a7f5a-84ec-41e2-bdf5-5bf4820a2543" />   
+  * 결과
+    * FSI에 대해 유의한 변수 : 노후도, 총층수, 승강기개수, 전기사용량, 가스사용량
+    * 위 산점도와 회귀직선 그래프를 확인했을 때 데이터와 회귀직선 사이에 선형성이 나타나지 않아 모델링 과정에서 다중선형회귀모델은 적합하지 않을 것으로 판단
+4. T/ANOVA-test
+  * T/ANOVA-test 결과표
+    <img width="296" alt="image" src="https://github.com/user-attachments/assets/39a29cfa-caad-4c79-bf36-389b56aac9ed" />
+  * 그래프   
+    <img width="493" alt="image" src="https://github.com/user-attachments/assets/be7213a4-aefc-4b47-903f-2cd061b5b72e" />
+  * 결과
+    * FSI에 대해 유의한 변수 : 화재확산_건물용도, 화재확산_건물자재, 화재확산_지붕자재
+    * FSI의 개발 의도에 따라 건물별 특징이 FSI에 대해 유의한 것을 확인
+  ### 3) 모델링
+
+
+
+   
+
+
+
+
+
+
+
 
 
 
